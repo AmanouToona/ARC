@@ -4,44 +4,36 @@ import sys
 def main():
     N, M, K = map(int, sys.stdin.readline().strip().split())
     A = list(map(int, sys.stdin.readline().strip().split()))
-    A.sort()
-    A = list(reversed(A))
 
-    ans_bit = ["0"] * 31
-    use = [False] * N
+    def judge(x):
+        # x を作れるか?
 
-    for bit in range(31, -1, -1):
-        want = 0
-        count = 0
-        for a in A[:K]:
-            if count >= K:
-                break
-            if not use and a > 1 << bit:
-                continue
-            count += 1
-            # print(f"a: {a}, bit: {bit}")
-            # print(a & ((1 << (bit + 1)) - 1))
-            # print((1 << bit) - (a & ((1 << (bit + 1)) - 1)))
-            if a >> bit & 1:
-                continue
-            else:
-                # print(a & ((1 << (bit + 1)) - 1))
-                want += (1 << bit) - (a & ((1 << (bit + 1)) - 1))
-
-        if want == 0:
-            ans_bit[bit] = "1"
-        elif want <= M:
-            M -= want
-            ans_bit[bit] = "1"
-
-            for i in range(K):
-                if A[i] >> bit & 1:
+        cost = [0] * N
+        for i, a in enumerate(A):
+            for bit in range(31, -1, -1):
+                if cost[i] != 0:
                     continue
-                else:
-                    A[i] += (1 << bit) - (A[i] & ((1 << (bit + 1)) - 1))
+                if x & (1 << bit) == 0:
+                    continue
+                if a & (1 << bit):
+                    continue
 
-    ans = "".join(list(reversed(ans_bit)))
-    print(int(str(ans), 2))
+                cost[i] = x & ((1 << (bit + 1)) - 1) - a & (1 << ((bit + 1) - 1))
+
+        cost.sort()
+        return sum(cost[:K]) <= M
+
+    ok = 0
+    ng = 1 << 31
+    while ng - ok > 1:
+        mid = (ng + ok) // 2
+
+        if judge(mid):
+            ok = mid
+        else:
+            ng = mid
+
+    print(ok)
 
     return
 
