@@ -18,7 +18,7 @@ def main():
                 if a & (1 << bit):
                     continue
 
-                cost[i] = x & ((1 << (bit + 1)) - 1) - a & (1 << ((bit + 1) - 1))
+                cost[i] = (x & ((1 << (bit + 1)) - 1)) - (a & ((1 << ((bit + 1)))) - 1)
 
         cost.sort()
         return sum(cost[:K]) <= M
