@@ -1,5 +1,4 @@
 import sys
-from itertools import groupby
 
 sys.setrecursionlimit(10 ** 8)
 
@@ -8,69 +7,34 @@ def solve():
     N, K = map(int, sys.stdin.readline().strip().split())
     S = input().strip()
 
-    rle = []
-    grouped = groupby(S)
-    for k, v in grouped:
-        rle.append((k, int(len(list(v)))))
+    cusum1 = [0] * (N + 1)
+    cusumq = [0] * (N + 1)
 
-    # 連続させることができるか?
-    one = False
-    zero = False
-    for k, _ in rle:
-        if k == "?":
-            continue
-        if k == "1":
-            if zero:
-                print("No")
-                return
-            one = True
-            continue
-        if one:
-            zero = True
+    for i, s in enumerate(S):
+        if s == "1":
+            cusum1[i + 1] = 1
+        elif s == "?":
+            cusumq[i + 1] = 1
 
-    one = False
-    short = 0
-    stock = 0
-    long = 0
-    for k, v in rle:
-        if k == "0" and not one:
-            short = 0
-            long = 0
-            continue
-        if k == "0" and one:
-            break
+    for i in range(len(cusumq) - 1):
+        cusum1[i + 1] += cusum1[i]
+        cusumq[i + 1] += cusumq[i]
 
-        if k == "1":
-            one = True
-            long += v
-            short += v + stock
-            continue
+    cnt = 0
+    for right in range(K, len(cusum1)):
+        left = right - K
 
-        long += v
-        if one:
-            stock += v
+        # 1 にしたい領域が 連続する 1 にできるか？
+        if K == (cusum1[right] - cusum1[left]) + (cusumq[right] - cusumq[left]):
+            # 1 にする領域以外に 1 が含まれていないか？
+            if cusum1[-1] - (cusum1[right] - cusum1[left]) == 0:
+                cnt += 1
 
-    # print(f"s: {short}, l: {long}")
-    # if K >= short and K <= long:
-    #     print("Yes")
-    # else:
-    #     print("No")
-    if long == K:
+    if cnt == 1:
         print("Yes")
-        return
-
-    # 結合可能な q が 2つ以上あるならX
-    q = False
-    for k, v in rle:
-        if k == "0":
-            q = False
-        if k == "?":
-            if q:
-                print("No")
-                return
-            q = True
-            continue
-    print("Yes")
+    else:
+        print("No")
+    return
 
 
 def main():
